@@ -322,10 +322,7 @@ void KMaxDistance::addFurtherPathToNodeAVL( MaxRec *srcRec, const int idxOfDstPi
 
 void KMaxDistance::addPathToNodeAVL( MaxRec *srcRec, const int dstNodeIdx, const double edgeCost,
     const int numDistMaxs, MaxRec **maxs, NodeAVL **queue ){
-     if(dstNodeIdx == 10060)
-    {
-        printf("%d\n", dstNodeIdx);
-    }
+    
     if ( maxs[dstNodeIdx] == NULL ) addFirstPathToNodeAVL( srcRec, dstNodeIdx, edgeCost, numDistMaxs, maxs, queue );
     else addFurtherPathToNodeAVL( srcRec, dstNodeIdx, edgeCost, numDistMaxs, maxs, queue );
 
@@ -365,14 +362,15 @@ double KMaxDistance::compute( const double *xEdgeCosts, const double *yEdgeCosts
     }
 
 	
-    while ( queue != NULL ){
+    while ( queue != NULL )
+    {
 
         MaxRec *minDistRec = (MaxRec*)avlFindAndDeleteMin( &queue );
 
         if ( !minDistRec->isUsed ) continue;
         
         minDistRec->wasMin = 1;
-        int imgIdx = minDistRec->imgIdx;p
+        int imgIdx = minDistRec->imgIdx;
         
         if ( minDistRec->sumVals < dists[imgIdx] ){ 
             if ( dists[imgIdx] > MAX_GEO_DIST - GEO_MAX_EPSX ) cnt++;
