@@ -57,7 +57,7 @@ class KMaxDistance {
 	public:
         
         double compute( const Image<unsigned char>& inputImage, const int numDistMaxs, const int* srcPixs, const int numSrcPixs, const int dstPix,
-    Image<double> *distImg = NULL, std::vector<int>* backPtrs = NULL, double* maxVector = NULL, const double sigmaForWeight = 1.0/3.0, const double baseCost = 0.001);
+    Image<double> *distImg = NULL, std::vector<int>* backPtrs = NULL, std::vector<double>* maxVector = NULL, const double sigmaForWeight = 1.0/3.0, const double baseCost = 0.001);
 
         double compute( const double *xEdgeCosts, const double *yEdgeCosts, const int width, const int height, const int numDistMaxs,
     const int *srcPixs, const int numSrcPixs, const int dstPix, double *dists = NULL, int* backPtrs = NULL, double *maxVector = NULL );

@@ -1,6 +1,9 @@
 # k-max Distance
 
-The k-max distance for images
+The k-max distance for images.
+The repository contains two sample codes:
+- main.cpp shows computing using our *Image* structure and *std::vector*
+- main2.cpp shows computing using C arrays
 
 ## Requirements
 
@@ -10,7 +13,7 @@ The k-max distance for images
 ## Usage
 
     make
-    ./main
+    ./main or ./main2
 
 ## Publication
 

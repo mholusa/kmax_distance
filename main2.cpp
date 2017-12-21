@@ -1,5 +1,5 @@
 /*============================================================================*/
-/* main.cpp                                                                  */
+/* main2.cpp                                                                  */
 /*                                                                            */
 /* example                                                mrl vsb-tuo 2014-17 */
 /*============================================================================*/
@@ -33,22 +33,23 @@ int loadSeeds( Image<unsigned char>& img, int* seeds, int* numPoints )
     return 0;
 }
 
-cv::Mat createDistanceMat(Image<double>& dstImg)
-{
-    cv::Mat dstMat = cv::Mat::zeros(dstImg.height, dstImg.width, CV_8U);    
-    double min = dstImg.vals[0], max=dstImg.vals[0];
-    for(int i = 1; i < dstImg.size; i++)
-    {
-        if(dstImg.vals[i] < min) min = dstImg.vals[i];
-        if(dstImg.vals[i] > max) max = dstImg.vals[i];
-    }
 
-    if(max > MAX_GEO_DIST - GEO_MAX_EPSX ) { fprintf(stderr, "ERROR: can not create distance image (dstPoint is defined)\n"); return dstMat; }
-    for(int x = 0; x < dstMat.cols; x++)
+cv::Mat createDistanceMat(const double* dstImg, const int width, const int height)
+{
+    cv::Mat dstMat = cv::Mat::zeros(height, width, CV_8U);    
+    double min = dstImg[0], max=dstImg[0];
+    for(int i = 1; i < width*height; i++)
     {
-        for(int y = 0; y < dstMat.rows; y++)
+        if(dstImg[i] < min) min = dstImg[i];
+        if(dstImg[i] > max) max = dstImg[i];
+    }
+    
+    if(max > MAX_GEO_DIST) { fprintf(stderr, "ERROR: can not create distance image (dstPoint is defined)\n"); return dstMat; }
+    for(int x = 0; x < width; x++)
+    {
+        for(int y = 0; y < height; y++)
         {
-            double val = (dstImg.vals[y*dstMat.cols+x] - min) / (max - min);
+            double val = (dstImg[y*width+x] - min) / (max - min);
             dstMat.at<uchar>(y,x) = (uchar)(255*val);
         }
     }
@@ -56,15 +57,14 @@ cv::Mat createDistanceMat(Image<double>& dstImg)
     return dstMat;
 }
 
-
-void drawPath(cv::Mat& img, const std::vector<int> path, cv::Scalar color)
+void drawPath(cv::Mat& img, int* path, cv::Scalar color)
 {
-	if( path.size() == 0 ) return;
-    for(unsigned int i = 0; i < path.size()-1; i++) {
+    int i = 0;
+    while(path[i+1] > 0) {
         cv::line(img, cv::Point(path[i] % img.cols, path[i] / img.cols), cv::Point(path[i+1] % img.cols, path[i+1] / img.cols), color, 1);
+        i++;
     }
 }
-
 
 int main( int argc, char** argv )
 {
@@ -73,33 +73,48 @@ int main( int argc, char** argv )
     cv::Mat inputImageGrey = cv::imread(imgFileName, 0);
     if(inputImageGrey.empty()) { printf("Image not found\n"); return -1; }
     
-    KMaxDistance kmax;
+    int imageWidth = inputImageGrey.cols;
+    int imageHeight = inputImageGrey.rows;
+    int numImagePixs = imageWidth * imageHeight;
     
-    Image<unsigned char> img = Image<unsigned char>(inputImageGrey.cols, inputImageGrey.rows, inputImageGrey.data);
-    Image<double> distImg = Image<double>(inputImageGrey.cols, inputImageGrey.rows);
+    double brSigma = 1.0/3.0;
+    double sxy = 0.001;
+    
+    KMaxDistance kmax;
+    int k = 5;
+    
+    double *image = (double*)malloc( numImagePixs*sizeof( image[0] ));
+    double *xCosts = (double*)malloc( numImagePixs*sizeof( xCosts[0] ));
+    double *yCosts = (double*)malloc( numImagePixs*sizeof( yCosts[0] ));
+    double* distImg = (double*)malloc( numImagePixs*sizeof( image[0] ));
+    int* backPtrs = (int*)malloc( numImagePixs*sizeof( backPtrs[0] ));
+    double* maxVector = (double*)malloc( k*sizeof( maxVector[0] ));
+    
+    for(int i = 0; i < numImagePixs; i++) image[i] = (double)inputImageGrey.data[i]/255.0;
+    
+    kmax.edgeCosts( image, imageWidth, imageHeight, brSigma, sxy, xCosts, yCosts );
     
     cv::Point srcPoint = cv::Point(50, 50);
     cv::Point dstPoint = cv::Point(99, 99);
     const int numSeedPixs = 1;
     int seedPixs[numSeedPixs];
-    seedPixs[0] = srcPoint.y * img.width + srcPoint.x;
-    int dstPix = dstPoint.y * img.width + dstPoint.x;
+    seedPixs[0] = srcPoint.y * imageWidth + srcPoint.x;
+    int dstPix = dstPoint.y * imageWidth + dstPoint.x;
     
-    std::vector<int> backPoints;
-    std::vector<double> maxVector;
-    int k = 5;
-    
-    double dist = kmax.compute(img, k, seedPixs, numSeedPixs, -dstPix, &distImg, &backPoints, &maxVector);
+    double dist = kmax.compute(xCosts, yCosts, imageWidth, imageHeight, k, seedPixs, numSeedPixs, -dstPix, distImg, backPtrs, maxVector);
     printf("distance: %.3f\n", dist);
     printf("vector: ( "); 
     for(int i = 0; i < k; i++) printf("%.3f ", maxVector[i]);
     printf(")\n");
     
     cv::Mat pathImg = inputImageGrey.clone();
-    drawPath(pathImg, backPoints, cv::Scalar(0,0,255));
-    cv::Mat out = createDistanceMat(distImg);
+    drawPath(pathImg, backPtrs, cv::Scalar(0,0,255));
+    cv::Mat out = createDistanceMat(distImg, imageWidth, imageHeight);
     cv::imwrite("pathImg.png", pathImg);
     cv::imwrite("distImg.png", out);
+    
+    free(image); free(xCosts); free(yCosts); free(distImg); free(backPtrs); free(maxVector);
+    
     return 0;
 
 }

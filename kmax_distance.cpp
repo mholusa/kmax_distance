@@ -442,7 +442,7 @@ double KMaxDistance::compute( const double *xEdgeCosts, const double *yEdgeCosts
 }
 
 double KMaxDistance::compute( const Image<unsigned char>& inputImage, const int numDistMaxs, const int* srcPixs, const int numSrcPixs, const int dstPix,
-    Image<double> *distImg, std::vector<int>* backPtrs, double* maxVector, const double sigmaForWeight, const double baseCost)
+    Image<double> *distImg, std::vector<int>* backPtrs, std::vector<double>* maxVector, const double sigmaForWeight, const double baseCost)
 {
     if(numSrcPixs == 0) { fprintf(stderr, "ERROR: source point is not found\n"); return -1.0; }
     
@@ -453,22 +453,37 @@ double KMaxDistance::compute( const Image<unsigned char>& inputImage, const int 
     double *image = new double[numPixs];
     double *xEdgeCosts = new double[numPixs];
     double *yEdgeCosts = new double[numPixs];
-    double *dists = new double[numPixs];
-    int *backTracePoints = new int[numPixs];
+    double *dists = NULL; 
+    if(distImg != NULL) dists = new double[numPixs];
+    int *backTracePoints = NULL;
+    if(backPtrs != NULL) backTracePoints = new int[numPixs];
+    double *vecOfMaxs = NULL;
+    if(maxVector != NULL) vecOfMaxs = new double[numDistMaxs];
     
     for(int i = 0; i < numPixs; i++) image[i] = (double)inputImage.vals[i]/255.0;
 
     edgeCosts(image, imgWidth, imgHeight, sigmaForWeight, baseCost, xEdgeCosts, yEdgeCosts);
     probabEstimator = new ProbabEstimator( "distrib4", numDistMaxs );
     
-    double dist = compute( xEdgeCosts, yEdgeCosts, imgWidth, imgHeight, numDistMaxs, srcPixs, numSrcPixs, dstPix, dists, backTracePoints, maxVector );
-
-    int i = 0;
-    while(backTracePoints[i] > -1) { backPtrs->push_back(backTracePoints[i]); i++; }
+    double dist = compute( xEdgeCosts, yEdgeCosts, imgWidth, imgHeight, numDistMaxs, srcPixs, numSrcPixs, dstPix, dists, backTracePoints, vecOfMaxs );
+    
+    if(backPtrs != NULL)
+    {
+        int i = 0;
+        while(backTracePoints[i] > -1) { backPtrs->push_back(backTracePoints[i]); i++; }
+    }
+    
+    if(maxVector != NULL)
+    {
+        for(int i = 0; i < numDistMaxs; i++) maxVector->push_back(vecOfMaxs[i]);
+    }
     
     if(distImg != NULL) memcpy(distImg->vals, dists, numPixs * sizeof(dists[0]) );
 
-    delete[] image ; delete[] xEdgeCosts ; delete[] yEdgeCosts ; delete[] dists ; delete[] backTracePoints;
+    delete[] image ; delete[] xEdgeCosts ; delete[] yEdgeCosts ; 
+    if(dists != NULL) delete[] dists; 
+    if(backTracePoints != NULL) delete[] backTracePoints; 
+    if(vecOfMaxs != NULL) delete[] vecOfMaxs;
     delete(probabEstimator);
 
     return dist;
