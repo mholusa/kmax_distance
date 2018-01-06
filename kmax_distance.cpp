@@ -510,7 +510,7 @@ double KMaxDistance::compute( const Graph& graph, const int numDistMaxs, const i
     double* maxV = NULL; 
     if(maxVector != NULL) maxV = (double*)malloc( numDistMaxs*sizeof( maxV[0] )); 
     int* backPoints = NULL;
-    if(backPtrs != NULL) backPoints = (int*)malloc( numDistMaxs*sizeof( backPoints[0] )); 
+    if(backPtrs != NULL) backPoints = (int*)malloc( graph.size*sizeof( backPoints[0] )); 
     
     for ( int i = 0; i < graph.size; ++i )
     { 
@@ -617,7 +617,7 @@ double KMaxDistance::compute( const Graph& graph, const int numDistMaxs, const i
     free( prevPtrs );
 	if(maxV != NULL) free(maxV);
 	if(backPoints != NULL) free(backPoints);
-    //if ( distsExt == NULL ) free( dists );
+    free( dists );
 	
     return retVal;
 }
