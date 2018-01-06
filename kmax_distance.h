@@ -14,6 +14,7 @@
 #include "distribfunction.h"
 #include "avl_tree.h"
 #include "image.h"
+#include "graph.h"
 
 
 #define MAX_GEO_DIST     1.0e8
@@ -61,6 +62,9 @@ class KMaxDistance {
 
         double compute( const double *xEdgeCosts, const double *yEdgeCosts, const int width, const int height, const int numDistMaxs,
     const int *srcPixs, const int numSrcPixs, const int dstPix, double *dists = NULL, int* backPtrs = NULL, double *maxVector = NULL );
+    
+		double compute( const Graph& graph, const int numDistMaxs, const int* srcPixs, const int numSrcPixs, const int dstPix,
+    std::vector<double> *distGraph = NULL, std::vector<int>* backPtrs = NULL, std::vector<double>* maxVector = NULL);
         
         void edgeCosts( const double *image, const int width, const int height, const double brSigma, const double sxy, double *xCosts, double *yCosts );
         

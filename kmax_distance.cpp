@@ -346,9 +346,11 @@ double KMaxDistance::compute( const double *xEdgeCosts, const double *yEdgeCosts
     MaxRec **maxs = (MaxRec**)malloc( width*height*sizeof( maxs[0] ));
     MaxRec* prevPtrs = (MaxRec*)malloc( width*height*sizeof( prevPtrs[0] ));
     
-    for ( int i = 0; i < width*height; ++i ) maxs[i] = NULL;
-    for ( int i = 0; i < width*height; ++i ) dists[i] = MAX_GEO_DIST;
-    //if ( backPtrs != NULL ) for ( int i = 0; i < width*height; ++i ) backPtrs[i] = -1;
+    for ( int i = 0; i < width*height; ++i ) 
+    {
+		maxs[i] = NULL;
+		dists[i] = MAX_GEO_DIST;
+	}
 
     NodeAVL *queue = NULL;
 
@@ -487,6 +489,137 @@ double KMaxDistance::compute( const Image<unsigned char>& inputImage, const int 
     delete(probabEstimator);
 
     return dist;
+}
+
+double KMaxDistance::compute( const Graph& graph, const int numDistMaxs, const int* srcPixs, const int numSrcPixs, const int dstPix,
+    std::vector<double> *distGraph, std::vector<int>* backPtrs, std::vector<double>* maxVector)
+{
+	if ( numDistMaxs > MAX_NUM_MAXS ){ fprintf(stderr, "ERROR: numDistMaxs is too big (increase MAX_NUM_MAXS).\n" ); return 0.0; }
+    if ( numDistMaxs < 1 ){ fprintf(stderr, "ERROR: numDistMaxs has to be positive.\n" ); return 0.0; }
+    if ( numSrcPixs < 1 ){ fprintf(stderr, "ERROR: no source points found.\n" ); return 0.0; }
+
+    numMaxRecs = 0;
+    numMaxRecsInOneNode = 0;
+    numDistMaxsGl = numDistMaxs;
+
+	int cnt = 0;
+    double *dists = (double*)malloc( graph.size*sizeof( dists[0] )); 
+    MaxRec **maxs = (MaxRec**)malloc( graph.size*sizeof( maxs[0] ));
+    MaxRec* prevPtrs = (MaxRec*)malloc( graph.size*sizeof( prevPtrs[0] ));
+    
+    double* maxV = NULL; 
+    if(maxVector != NULL) maxV = (double*)malloc( numDistMaxs*sizeof( maxV[0] )); 
+    int* backPoints = NULL;
+    if(backPtrs != NULL) backPoints = (int*)malloc( numDistMaxs*sizeof( backPoints[0] )); 
+    
+    for ( int i = 0; i < graph.size; ++i )
+    { 
+		maxs[i] = NULL;
+		dists[i] = MAX_GEO_DIST;
+	}
+	
+
+    NodeAVL *queue = NULL;
+
+    for ( int i = 0; i < numSrcPixs; ++i ){
+        int imgIdx = srcPixs[i];
+        MaxRec *rec = createNewMaxRec( imgIdx, numDistMaxs );
+        rec->wasMin = 1;
+        rec->qPtr = avlInsert( &queue, 0.0, rec );
+        maxs[imgIdx] = rec;
+        if ( prevPtrs != NULL ) prevPtrs[imgIdx] = *rec;
+    }
+
+	
+    while ( queue != NULL )
+    {
+
+        MaxRec *minDistRec = (MaxRec*)avlFindAndDeleteMin( &queue );
+
+        if ( !minDistRec->isUsed ) continue;
+        
+        minDistRec->wasMin = 1;
+        int imgIdx = minDistRec->imgIdx;
+        
+        if ( minDistRec->sumVals < dists[imgIdx] ){ 
+            if ( dists[imgIdx] > MAX_GEO_DIST - GEO_MAX_EPSX ) cnt++;
+            dists[imgIdx] = minDistRec->sumVals;
+            prevPtrs[imgIdx] = *minDistRec;
+            if ( cnt == graph.size ) break;
+        }
+        
+        if ( dstPix >= 0 ){ if ( dists[dstPix] < MAX_GEO_DIST ) break; }
+        
+        std::vector<Edge> edgeList = graph.nodes[imgIdx];
+        
+        for(unsigned int e = 0; e < edgeList.size(); e++)
+        {
+			addPathToNodeAVL( minDistRec, edgeList[e].targetId, edgeList[e].cost, numDistMaxs, maxs, &queue );
+		}
+
+    }
+
+	
+    double retVal = 0.0;
+    retVal = dists[abs(dstPix)];
+
+    if ( maxVector != NULL ) 
+    {
+        MaxRec* m = maxs[abs(dstPix)];
+        double minSum = m->sumVals;
+        for(int i = 0; i < m->numVals; i++) maxV[i] = m->vals[i];
+
+        while(m->next != NULL)
+        {
+            m = (MaxRec*) m->next;
+            if(m->sumVals < minSum)
+            {
+                minSum = m->sumVals;
+                for(int i = 0; i < m->numVals; i++) maxV[i] = m->vals[i];
+            }
+        }
+        for(int i = 0; i < m->numVals; i++) maxVector->push_back(maxV[i]);
+    }
+	
+    if ( backPtrs != NULL ) 
+    {
+        int backIdx = 0;
+        MaxRec* backRec = &prevPtrs[abs(dstPix)];
+        while(backRec != NULL)
+        {
+            backPoints[backIdx++] = backRec->imgIdx;
+            backRec = (MaxRec*) backRec->back;
+        }
+        backPoints[backIdx++] = -1;
+        for(int i = 0; i < backIdx; i++) backPtrs->push_back(backPoints[i]);
+    }
+    
+    if( distGraph != NULL )
+    {
+		for(int i = 0; i < graph.size; i++)
+		{
+			distGraph->push_back( dists[i] );
+		}
+	}
+    
+    while ( queue != NULL ) avlFindAndDeleteMin( &queue );
+    
+    #ifdef DEBUG_MODE
+    meanNumRecs = (double)numMaxRecs/(double)(width*height);
+    maxNumRecsInNode = numMaxRecsInOneNode;
+    printf("meanNumRecs: %.2lf\n", meanNumRecs);
+    printf("maxNumRecsInNode: %d\n", maxNumRecsInNode);
+    #endif
+
+    for ( int i = 0; i < graph.size; ++i ) freeMaxRecs( maxs[i] );
+    free( maxs ); 
+    free( queue );
+    free( prevPtrs );
+	if(maxV != NULL) free(maxV);
+	if(backPoints != NULL) free(backPoints);
+    //if ( distsExt == NULL ) free( dists );
+	
+    return retVal;
 }
 
 void KMaxDistance::edgeCosts( const double *image, const int width, const int height,

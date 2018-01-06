@@ -10,20 +10,6 @@
 
 /*============================================================================*/
 
-void printMat(cv::Mat mat)
-{
-    bool is_float = mat.type() >= 5;
-    for(int y = 0; y < mat.rows; y++)
-    {
-        for(int x = 0; x < mat.cols; x++)
-        {
-            if(is_float) printf("%5.2f ", mat.at<float>(y,x));
-            else printf("%5d ", mat.at<int>(y,x));
-        }
-        printf("\n");
-    }
-}
-
 int loadSeeds( Image<unsigned char>& img, int* seeds, int* numPoints ) 
 {
     for ( int i = 0; i < img.size; i++ ) {
@@ -34,7 +20,7 @@ int loadSeeds( Image<unsigned char>& img, int* seeds, int* numPoints )
 }
 
 
-cv::Mat createDistanceMat(const double* dstImg, const int width, const int height)
+cv::Mat createDistanceMat( const double* dstImg, const int width, const int height )
 {
     cv::Mat dstMat = cv::Mat::zeros(height, width, CV_8U);    
     double min = dstImg[0], max=dstImg[0];
@@ -57,7 +43,7 @@ cv::Mat createDistanceMat(const double* dstImg, const int width, const int heigh
     return dstMat;
 }
 
-void drawPath(cv::Mat& img, int* path, cv::Scalar color)
+void drawPath( cv::Mat& img, int* path, cv::Scalar color )
 {
     int i = 0;
     while(path[i+1] > 0) {

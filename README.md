@@ -1,9 +1,7 @@
 # k-max Distance
 
-The k-max distance for images.
-The repository contains two sample codes:
-- main.cpp shows computing using our *Image* structure and *std::vector*
-- main2.cpp shows computing using C arrays
+The k-max distance for images and graphs.
+The repository contains the source code of the k-max distance and also three samples how to use it.
 
 ## Requirements
 
@@ -11,9 +9,23 @@ The repository contains two sample codes:
 * opencv
 
 ## Usage
-
+```
     make
-    ./main or ./main2
+```
+##### The distance computed in images using *Image* structure
+```
+./main 
+```
+
+#####  The distance computed in images using C arrays
+```
+./main2
+```
+#####  The distance computed in graphs using *Graph* structure
+```
+./main3
+```
+In all the examples, the function `compute` is used for the k-max distance computing. This function requires the Image structure (`main.cpp`), Graph structure (`main3.cpp`), or arrays with the edge costs in x and y directions (`main2.cpp`), the array of source nodes, the number of source nodes, the destination point (if negative value is used, the distance to all nodes is computed and the distance to the destination node is returned), and the optional arguments that represent the distance transform (the negative value of destination point is required), the shortest path, and the maximum vector that gives the distance.
 
 ## Publication
 
