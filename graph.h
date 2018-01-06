@@ -14,7 +14,6 @@ class Graph
 		std::vector<std::vector<Edge>> nodes;
     
     Graph(int size) { 
-        this->size = size; 
         this->nodes.reserve(size);
     }
     
