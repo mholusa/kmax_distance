@@ -1,17 +1,17 @@
 /*============================================================================*/
 /* main3.cpp                                                                  */
+/*                                                        mrl vsb-tuo 2014-18 */
 /*                                                                            */
-/* example                                                mrl vsb-tuo 2014-18 */
-/* the distance is computed in the following graph:							  */
-/*																			  */
-/*         0.3    															  */
-/*      1-------2															  */
-/* 0.4 /         \ 0.2														  */
-/*    /           \															  */
-/*   O------3------4------5													  */
-/*     0.5    0.1    0.3													  */
-/* 																			  */
-/* the graph nodes are indexed from 0										  */
+/* the distance is computed in the following graph:                           */
+/*                                                                            */
+/*         0.3                                                                */
+/*      1-------2                                                             */
+/* 0.4 /         \ 0.2                                                        */
+/*    /           \                                                           */
+/*   O------3------4------5                                                   */
+/*     0.5    0.1    0.3                                                      */
+/*                                                                            */
+/* the graph nodes are indexed from 0                                         */
 /*============================================================================*/
 
 #include "kmax_distance.h"
