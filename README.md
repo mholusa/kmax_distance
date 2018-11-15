@@ -10,6 +10,7 @@ The repository contains the source code of the k-max distance and also three sam
 
 ## Usage
 ```
+    cmake .
     make
 ```
 ##### The distance computed in images using *Image* structure
@@ -25,7 +26,11 @@ The repository contains the source code of the k-max distance and also three sam
 ```
 ./main3
 ```
-In all the examples, the function `compute` is used for the k-max distance computing. This function requires the Image structure (`main.cpp`), Graph structure (`main3.cpp`), or arrays with the edge costs in x and y directions (`main2.cpp`), the array of source nodes, the number of source nodes, the destination point (if negative value is used, the distance to all nodes is computed and the distance to the destination node is returned), and the optional arguments that represent the distance transform (the negative value of destination point is required), the shortest path, and the maximum vector that gives the distance.
+In all the examples, the function `compute` is used for the k-max distance computing. <br />
+This function requires the Image structure (`main.cpp`), Graph structure (`main3.cpp`), or arrays with the edge costs in x and y directions (`main2.cpp`).
+In addition, the array of source nodes, the number of source nodes, and the destination point (if a negative value is used, the distance is computed to all the image nodes and the distance to the destination node is returned) are required.
+The function returns the distance to the destination point.
+Optionally, the distance transform (the negative value of destination point is required), the shortest path, and the maximum vector that gives the distance can be returned from the function.
 
 ## Publication
 

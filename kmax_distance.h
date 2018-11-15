@@ -12,9 +12,11 @@
 #include <string.h>
 #include <vector>
 #include "distribfunction.h"
-#include "avl_tree.h"
 #include "image.h"
 #include "graph.h"
+extern "C" {
+#include "avl_tree.h"
+}
 
 
 #define MAX_GEO_DIST     1.0e8
