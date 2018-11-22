@@ -36,3 +36,20 @@ Optionally, the distance transform (the negative value of destination point is r
 
 Michael Holuša, Eduard Sojka, The k-max distance in graphs and images, In Pattern Recognition Letters, Volume 98, 2017, Pages 103-109, ISSN 0167-8655, https://doi.org/10.1016/j.patrec.2017.09.003.
 (http://www.sciencedirect.com/science/article/pii/S0167865517303148)
+
+### BibTeX
+
+```
+@article{holusa2017,
+title = {The k-max distance in graphs and images},
+author = {Michael Holuša and Eduard Sojka},
+journal = {Pattern Recognition Letters},
+volume = {98},
+pages = {103 - 109},
+year = {2017},
+issn = {0167-8655},
+doi = {https://doi.org/10.1016/j.patrec.2017.09.003},
+url = {http://www.sciencedirect.com/science/article/pii/S0167865517303148},
+keywords = "Distance measuring, Shortest path, -max distance, Geodesic distance, Image processing, Image segmentation",
+}
+```
